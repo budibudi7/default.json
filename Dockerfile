@@ -1,17 +1,14 @@
-# clean base image containing only comfyui, comfy-cli and comfyui-manager
 FROM runpod/worker-comfyui:5.5.1-base
 
-# install custom nodes into comfyui (first node with --mode remote to fetch updated cache)
+# install custom nodes
 RUN comfy node install --exit-on-fail comfyui-image-saver@1.20.0 --mode remote
 
-# unknown_registry nodes could not be resolved to a known package or GitHub repo, skipping
-# Could not resolve unknown_registry node 'MarkdownNote' - no aux_id provided
-# Could not resolve unknown_registry node 'MarkdownNote' - no aux_id provided
-# Could not resolve unknown_registry node 'MarkdownNote' - no aux_id provided
-# Could not resolve unknown_registry node 'MarkdownNote' - no aux_id provided
+# civitai token via build arg / env
+ARG CIVITAI_TOKEN
+ENV CIVITAI_TOKEN=${CIVITAI_TOKEN}
 
-# download models into comfyui
-RUN comfy model download --url https://civitai.com/api/download/models/2403075?type=Model&format=SafeTensor&size=pruned&fp=fp16&token=6c763551a51643ee44beca122679f67a --relative-path models/checkpoints --filename unholy-desire-mix-sinister-aesthetic-illustrious.safetensors
-
-# copy all input data (like images or videos) into comfyui (uncomment and adjust if needed)
-# COPY input/ /comfyui/input/
+# ensure checkpoint directory exists + download model
+RUN mkdir -p models/checkpoints && \
+    curl -L \
+    "https://civitai.com/api/download/models/2403075?type=Model&format=SafeTensor&size=pruned&fp=fp16&token=${CIVITAI_TOKEN}" \
+    -o models/checkpoints/unholy-desire-mix-sinister-aesthetic-illustrious.safetensors
