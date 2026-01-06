@@ -1,5 +1,20 @@
 #!/bin/sh
 
+set -e
+
+echo "Locating ComfyUI directory..."
+
+# cari main.py (root ComfyUI)
+COMFY_DIR=$(find / -type f -name "main.py" 2>/dev/null | head -n 1 | xargs dirname)
+
+if [ -z "$COMFY_DIR" ]; then
+  echo "ERROR: ComfyUI main.py not found!"
+  exit 1
+fi
+
+echo "Found ComfyUI at: $COMFY_DIR"
+cd "$COMFY_DIR"
+
 MODEL_DIR="models/checkpoints"
 MODEL_FILE="unholy-desire-mix-sinister-aesthetic-illustrious.safetensors"
 MODEL_PATH="$MODEL_DIR/$MODEL_FILE"
@@ -10,7 +25,6 @@ mkdir -p "$MODEL_DIR"
 if [ ! -f "$MODEL_PATH" ]; then
   echo "Downloading model from CivitAI..."
 
-  # install curl if missing
   if ! command -v curl >/dev/null 2>&1; then
     apt-get update && apt-get install -y curl
   fi
